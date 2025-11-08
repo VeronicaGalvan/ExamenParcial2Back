@@ -1,12 +1,9 @@
-# Etapa 1: construir el proyecto
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /src
+WORKDIR /app
 COPY . .
-RUN dotnet restore "./Examen_parcial2back/Examen_parcial2back.csproj"
-RUN dotnet publish "./Examen_parcial2back/Examen_parcial2back.csproj" -c Release -o /app/out
+RUN dotnet publish "Examen_parcial2back/Examen_parcial2back.csproj" -c Release -o out
 
-# Etapa 2: ejecutar el proyecto
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 COPY --from=build /app/out .
 ENTRYPOINT ["dotnet", "Examen_parcial2back.dll"]
