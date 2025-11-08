@@ -2,7 +2,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# Copiar solo el csproj primero para aprovechar cache
+# Copiar solo el csproj primero
 COPY Examen_parcial2back/Examen_parcial2back/Examen_parcial2back.csproj ./
 
 # Restaurar dependencias
