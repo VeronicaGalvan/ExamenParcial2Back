@@ -39,14 +39,18 @@ if (!app.Environment.IsDevelopment())
 app.UseAuthorization();
 app.MapControllers();
 
-// ENDPOINT RAÍZ para verificar que funciona
+// ENDPOINT RAÍZ con las rutas correctas
 app.MapGet("/", () => new {
     message = "API Examen Parcial 2 - Backend is running!",
     status = "Active",
     timestamp = DateTime.UtcNow,
-    endpoints = new string[] {
-        "/api/participantes",
-        "/swagger"
+    endpoints = new
+    {
+        listar_participantes = "/api/listado",
+        buscar_participantes = "/api/listado/buscar?q=texto",
+        obtener_por_id = "/api/gafete/{id}",
+        crear_participante = "POST /api/registro",
+        swagger = "/swagger"
     }
 });
 
