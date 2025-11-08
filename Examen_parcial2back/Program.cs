@@ -4,10 +4,9 @@ using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Registrar el contexto de base de datos
+// Configuración de base de datos
 builder.Services.AddDbContext<ParticipanteDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("ConexionSQLite")));
+    options.UseSqlite(builder.Configuration.GetConnectionString("ConexionSQLite") ?? "Data Source=participantes.db"));
 
 // Agregar controladores
 builder.Services.AddControllers().AddJsonOptions(options =>
@@ -15,7 +14,7 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.ReferenceHandler = null;
 });
 
-// Habilitar CORS (para conectar con React)
+// Habilitar CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("PermitirTodo",
@@ -27,7 +26,7 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Swagger solo en desarrollo
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -36,7 +35,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("PermitirTodo");
 
-// Solo usar HTTPS redirection en desarrollo, Render maneja SSL
+// HTTPS solo en desarrollo
 if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
@@ -45,6 +44,6 @@ if (!app.Environment.IsDevelopment())
 app.UseAuthorization();
 app.MapControllers();
 
-// CONFIGURACIÓN PARA RENDER - Usar el puerto que Render asigna
+// CONFIGURACIÓN PARA RENDER
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 app.Run($"http://0.0.0.0:{port}");
