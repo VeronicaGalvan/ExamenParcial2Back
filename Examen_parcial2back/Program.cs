@@ -25,14 +25,14 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// EJECUTAR MIGRACIONES AL INICIAR - ESTO ES CLAVE PARA QUE FUNCIONE LA BD
+// EJECUTAR MIGRACIONES AL INICIAR
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     try
     {
         var context = services.GetRequiredService<ParticipanteDbContext>();
-        context.Database.Migrate(); // Esto aplica las migraciones automáticamente
+        context.Database.Migrate();
         Console.WriteLine("✅ Migraciones de base de datos aplicadas exitosamente");
     }
     catch (Exception ex)
@@ -55,7 +55,7 @@ if (!app.Environment.IsDevelopment())
 app.UseAuthorization();
 app.MapControllers();
 
-// ENDPOINT RAÍZ CORREGIDO - Sin inyección directa de DbContext
+// ENDPOINT RAÍZ
 app.MapGet("/", () =>
 {
     return new
@@ -69,9 +69,36 @@ app.MapGet("/", () =>
             buscar_participantes = "/api/listado/buscar?q=texto",
             obtener_por_id = "/api/gafete/{id}",
             crear_participante = "POST /api/registro",
-            swagger = "/swagger"
+            swagger = "/swagger",
+            health_check = "/health"
         }
     };
+});
+
+// HEALTH CHECK para verificar base de datos
+app.MapGet("/health", async (IServiceProvider serviceProvider) =>
+{
+    try
+    {
+        using var scope = serviceProvider.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ParticipanteDbContext>();
+        var count = await context.Participantes.CountAsync();
+        return Results.Ok(new
+        {
+            status = "Healthy",
+            database = "Connected",
+            participantes_count = count,
+            timestamp = DateTime.UtcNow
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(
+            title: "Database connection failed",
+            detail: ex.Message,
+            statusCode: 500
+        );
+    }
 });
 
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
