@@ -1,4 +1,4 @@
-using CongresoTICsAPI.Data;
+﻿using CongresoTICsAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using System;
 
@@ -25,6 +25,22 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// EJECUTAR MIGRACIONES AL INICIAR - ESTO ES CLAVE PARA QUE FUNCIONE LA BD
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<ParticipanteDbContext>();
+        context.Database.Migrate(); // Esto aplica las migraciones automáticamente
+        Console.WriteLine("✅ Migraciones de base de datos aplicadas exitosamente");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error aplicando migraciones: {ex.Message}");
+    }
+}
+
 // Swagger siempre disponible
 app.UseSwagger();
 app.UseSwaggerUI();
@@ -39,19 +55,23 @@ if (!app.Environment.IsDevelopment())
 app.UseAuthorization();
 app.MapControllers();
 
-// ENDPOINT RA�Z con las rutas correctas
-app.MapGet("/", () => new {
-    message = "API Examen Parcial 2 - Backend is running!",
-    status = "Active",
-    timestamp = DateTime.UtcNow,
-    endpoints = new
+// ENDPOINT RAÍZ CORREGIDO - Sin inyección directa de DbContext
+app.MapGet("/", () =>
+{
+    return new
     {
-        listar_participantes = "/api/listado",
-        buscar_participantes = "/api/listado/buscar?q=texto",
-        obtener_por_id = "/api/gafete/{id}",
-        crear_participante = "POST /api/registro",
-        swagger = "/swagger"
-    }
+        message = "API Examen Parcial 2 - Backend is running!",
+        status = "Active",
+        timestamp = DateTime.UtcNow,
+        endpoints = new
+        {
+            listar_participantes = "/api/listado",
+            buscar_participantes = "/api/listado/buscar?q=texto",
+            obtener_por_id = "/api/gafete/{id}",
+            crear_participante = "POST /api/registro",
+            swagger = "/swagger"
+        }
+    };
 });
 
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
