@@ -9,11 +9,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ParticipanteDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("ConexionSQLite")));
 
-
 // Agregar controladores
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
-    //enviara los datos en forma de un array plano osea sin id ni values
     options.JsonSerializerOptions.ReferenceHandler = null;
 });
 
@@ -25,7 +23,6 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddEndpointsApiExplorer();
-
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
@@ -37,13 +34,17 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// Configure the HTTP request pipeline.
 app.UseCors("PermitirTodo");
 
-app.UseHttpsRedirection();
+// Solo usar HTTPS redirection en desarrollo, Render maneja SSL
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseAuthorization();
-
 app.MapControllers();
 
-app.Run();
+// CONFIGURACIÓN PARA RENDER - Usar el puerto que Render asigna
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+app.Run($"http://0.0.0.0:{port}");
